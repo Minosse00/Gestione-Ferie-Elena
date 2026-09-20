@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Ferie, Ticket e Malattia/104</title>
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Applicazione completa per la gestione di ferie, ROL, ex festività, ticket, malattia e legge 104.">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root, [data-theme="dark"] {
             --primary: #94a3b8;
@@ -62,24 +65,41 @@
             align-items: center;
             margin-bottom: 16px;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
 
-        h1 { font-size: 1.4rem; color: var(--text-heading); margin: 0; }
+        h1 { 
+            font-size: 1.3rem; 
+            color: var(--text-heading); 
+            margin: 0; 
+            flex: 1 1 250px;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
 
         .theme-btn {
             background-color: var(--card-bg);
             color: var(--text);
             border: 1px solid var(--border);
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 20px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
+            font-size: 0.82rem;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
+            white-space: nowrap;
         }
+
+        .theme-btn:hover { opacity: 0.85; }
 
         .card {
             background: var(--card-bg);
@@ -254,12 +274,23 @@
 <div class="container">
     <div class="header-container">
         <h1>Gestione Ferie, Permessi, Ticket, Malattia e Legge 104</h1>
-        <button class="theme-btn" onclick="toggleTema()">
-            <span id="themeIcon">☀️</span> <span id="themeText">Tema Chiaro</span>
-        </button>
+        <div class="header-actions">
+            <!-- Pulsante Installazione PWA (dinamico) -->
+            <button class="theme-btn" id="btnInstallaPWA" style="display: none; background-color: var(--success); color: #fff;" onclick="installaPWAApp()">
+                📲 Installa App
+            </button>
+            <button class="theme-btn" onclick="apriIstruzioniPWA()" title="Istruzioni installazione PWA">
+                ℹ️ PWA
+            </button>
+            <button class="theme-btn" onclick="toggleTema()">
+                <span id="themeIcon">☀️</span> <span id="themeText">Tema Chiaro</span>
+            </button>
+            <button class="theme-btn" onclick="esciApplicazione()" title="Esci o Chiudi app" style="background-color: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger);">
+                🚪 Exit
+            </button>
+        </div>
     </div>
 
-    <!-- Sezioni Moduli / Inserimento racchiuse in details chiusi -->
     <details>
         <summary>📅 + Aggiungi Mese / Accredito Manuale</summary>
         <div class="card" style="border: none; box-shadow: none; padding: 0; margin-top: 10px;">
@@ -375,7 +406,6 @@
         </div>
     </details>
 
-    <!-- Saldi Attuali Accumulati racchiusi in details APERTO -->
     <details open>
         <summary>📊 Saldi Attuali Accumulati</summary>
         <div style="margin-top: 10px;">
@@ -398,8 +428,6 @@
         </div>
     </details>
 
-    <!-- REGISTRI DETTAGLIATI -->
-    <!-- Registro Ferie -->
     <details>
         <summary>🏖️ Registro Ferie e Permessi Utilizzati (Editabile)</summary>
         <div class="table-responsive">
@@ -419,7 +447,6 @@
         </div>
     </details>
 
-    <!-- Registro Malattia e Legge 104 Unificato -->
     <details>
         <summary>🏥 Registro Malattie e Legge 104 (Editabile)</summary>
         <div class="table-responsive">
@@ -439,7 +466,6 @@
         </div>
     </details>
 
-    <!-- Registro Ticket Spesi -->
     <details>
         <summary>🎫 Registro Ticket Spesi per Giorno (Editabile)</summary>
         <div class="table-responsive">
@@ -458,7 +484,6 @@
         </div>
     </details>
 
-    <!-- Prospetto Mensile Editabile -->
     <details>
         <summary>⚙️ Prospetto Mensile Riconciliato (Salvataggio in locale)</summary>
         <p style="font-size: 0.8rem; color: var(--primary); margin-top: 8px;">Puoi modificare direttamente le ore maturate o i ticket di ogni mese nelle caselle sottostanti e cliccare sul pulsante verde per ricalcolare e salvare tutto nel browser.</p>
@@ -510,6 +535,40 @@
     </div>
 </div>
 
+<!-- MODAL MESSAGGI CUSTOM (Sostituto di alert/confirm) -->
+<div id="modalMessaggio" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <div class="modal-header" style="justify-content: center;">
+            <h3 id="msgModalTitle">Notifica</h3>
+        </div>
+        <p id="msgModalText" style="margin: 16px 0; font-size: 0.95rem; line-height: 1.5;"></p>
+        <div id="msgModalActions" style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <button id="msgBtnOk" style="background-color: var(--secondary); width: auto; padding: 8px 20px;" onclick="chiudiMessaggio()">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ISTRUZIONI INSTALLAZIONE PWA -->
+<div id="modalPwaInfo" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📲 Come installare l'App</h3>
+            <button class="modal-close" onclick="chiudiIstruzioniPWA()">&times;</button>
+        </div>
+        <div style="font-size: 0.9rem; line-height: 1.6;">
+            <p>Questa applicazione è una <strong>PWA (Progressive Web App)</strong> e può essere installata su qualsiasi dispositivo:</p>
+            <ul style="padding-left: 20px; margin: 10px 0;">
+                <li><strong>PC / Mac (Chrome, Edge, Brave):</strong> Clicca sul pulsante "📲 Installa App" in alto oppure sull'icona di installazione nella barra degli indirizzi del browser.</li>
+                <li><strong>Dispositivi Android (Chrome):</strong> Tocca il menu (i tre puntini in alto a destra) e seleziona <strong>"Installa app"</strong> o <strong>"Aggiungi a schermata Home"</strong>.</li>
+                <li><strong>iPhone / iPad (Safari iOS):</strong> Tocca il tasto <strong>Condividi</strong> ⎋ in basso e scorri fino a trovare <strong>"Aggiungi alla schermata Home"</strong> ➕.</li>
+            </ul>
+        </div>
+        <div style="margin-top: 20px;">
+            <button style="background-color: var(--secondary);" onclick="chiudiIstruzioniPWA()">Ho capito</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const MESE_INIZIO_DEFAULT = '2026-07';
 
@@ -517,6 +576,8 @@
     let ferieLog = [];
     let mal104Log = [];
     let ticketLog = [];
+    let deferredInstallPrompt = null;
+    let confirmCallback = null;
 
     let currentEditState = { type: null, index: -1 };
 
@@ -525,6 +586,128 @@
         'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
     ];
 
+    // Gestione Modale Messaggi personalizzati (zero alert/confirm nativi)
+    function mostraMessaggio(testo, titolo = "Avviso") {
+        document.getElementById('msgModalTitle').innerText = titolo;
+        document.getElementById('msgModalText').innerText = testo;
+        const actionsDiv = document.getElementById('msgModalActions');
+        actionsDiv.innerHTML = `<button id="msgBtnOk" style="background-color: var(--secondary); width: auto; padding: 8px 20px;" onclick="chiudiMessaggio()">OK</button>`;
+        document.getElementById('modalMessaggio').style.display = 'flex';
+    }
+
+    function mostraConferma(testo, callback) {
+        document.getElementById('msgModalTitle').innerText = "Conferma operazione";
+        document.getElementById('msgModalText').innerText = testo;
+        confirmCallback = callback;
+        const actionsDiv = document.getElementById('msgModalActions');
+        actionsDiv.innerHTML = `
+            <button style="background-color: var(--success); width: auto; padding: 8px 16px;" onclick="eseguiConferma(true)">Conferma</button>
+            <button style="background-color: var(--danger); width: auto; padding: 8px 16px;" onclick="eseguiConferma(false)">Annulla</button>
+        `;
+        document.getElementById('modalMessaggio').style.display = 'flex';
+    }
+
+    function eseguiConferma(risultato) {
+        chiudiMessaggio();
+        if (risultato && typeof confirmCallback === 'function') {
+            const cb = confirmCallback;
+            confirmCallback = null;
+            cb();
+        } else {
+            confirmCallback = null;
+        }
+    }
+
+    function chiudiMessaggio() {
+        document.getElementById('modalMessaggio').style.display = 'none';
+    }
+
+    // Configurazione e Registrazione Dinamica PWA (Manifest + Service Worker)
+    function setupPWA() {
+        // 1. Creazione dinamica del Web App Manifest in Blob URL
+        const manifestData = {
+            name: "Gestione Ferie e Ticket",
+            short_name: "FerieApp",
+            start_url: window.location.href,
+            display: "standalone",
+            background_color: "#0f172a",
+            theme_color: "#0f172a",
+            icons: [
+                {
+                    src: "icon-192.png",
+                    sizes: "192x192",
+                    type: "image/png"
+                },
+                {
+                    src: "icon-512.jpg",
+                    sizes: "512x512",
+                    type: "image/jpeg"
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        
+        let linkTag = document.createElement('link');
+        linkTag.rel = 'manifest';
+        linkTag.href = manifestURL;
+        document.head.appendChild(linkTag);
+
+        // 2. Registrazione Service Worker in-memory via Blob URL
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => {
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (e) => {
+                    e.waitUntil(clients.claim());
+                });
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(
+                        fetch(e.request).catch(() => caches.match(e.request))
+                    );
+                });
+            `;
+            const swBlob = new Blob([swCode], { type: 'text/javascript' });
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl).catch(err => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+    }
+
+    // Gestione evento installazione browser
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        const btnInstalla = document.getElementById('btnInstallaPWA');
+        if (btnInstalla) {
+            btnInstalla.style.display = 'inline-flex';
+        }
+    });
+
+    async function installaPWAApp() {
+        if (deferredInstallPrompt) {
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            if (outcome === 'accepted') {
+                document.getElementById('btnInstallaPWA').style.display = 'none';
+            }
+            deferredInstallPrompt = null;
+        } else {
+            apriIstruzioniPWA();
+        }
+    }
+
+    function apriIstruzioniPWA() {
+        document.getElementById('modalPwaInfo').style.display = 'flex';
+    }
+
+    function chiudiIstruzioniPWA() {
+        document.getElementById('modalPwaInfo').style.display = 'none';
+    }
+
     function toggleTema() {
         const html = document.documentElement;
         const currentTheme = html.getAttribute('data-theme');
@@ -532,6 +715,16 @@
         html.setAttribute('data-theme', newTheme);
         document.getElementById('themeIcon').innerText = newTheme === 'light' ? '🌙' : '☀️';
         document.getElementById('themeText').innerText = newTheme === 'light' ? 'Tema Scuro' : 'Tema Chiaro';
+    }
+
+    function esciApplicazione() {
+        mostraConferma("Vuoi uscire dall'applicazione o chiudere la scheda?", () => {
+            try {
+                window.close();
+            } catch(e) {}
+            // Fallback se window.close() è bloccato dal browser
+            window.location.href = 'about:blank';
+        });
     }
 
     function popolaSelettoreMeseManuale() {
@@ -668,7 +861,7 @@
             try {
                 const imported = JSON.parse(e.target.result);
                 if (imported && (imported.dati || imported.ferieLog || imported.mal104Log || imported.ticketLog)) {
-                    if (confirm("Sei sicuro di voler ripristinare i dati da questo file? Tutti i dati attuali verranno sovrascritti.")) {
+                    mostraConferma("Sei sicuro di voler ripristinare i dati da questo file? Tutti i dati attuali verranno sovrascritti.", () => {
                         dati = imported.dati || [];
                         ferieLog = imported.ferieLog || [];
                         mal104Log = imported.mal104Log || [];
@@ -676,13 +869,13 @@
 
                         salvaTuttiDati();
                         render();
-                        alert("Dati ripristinati con successo dal file!");
-                    }
+                        mostraMessaggio("Dati ripristinati con successo dal file!");
+                    });
                 } else {
-                    alert("Il file selezionato non sembra essere un backup valido.");
+                    mostraMessaggio("Il file selezionato non sembra essere un backup valido.");
                 }
             } catch (err) {
-                alert("Errore durante la lettura del file: formato JSON non valido.");
+                mostraMessaggio("Errore durante la lettura del file: formato JSON non valido.");
             }
         };
         reader.readAsText(file);
@@ -786,7 +979,7 @@
         if (!sel) return;
         const meseInput = sel.value;
         if (!meseInput) {
-            alert("Seleziona un mese valido.");
+            mostraMessaggio("Seleziona un mese valido.");
             return;
         }
 
@@ -821,7 +1014,7 @@
         riconcolaTutto();
         salvaTuttiDati();
         render();
-        alert("Mese aggiornato con successo!");
+        mostraMessaggio("Mese aggiornato con successo!");
     }
 
     function aggiungiFerie() {
@@ -832,11 +1025,11 @@
         const note = document.getElementById('inputFerieNote').value;
 
         if (!da || !a) {
-            alert("Compila le date di inizio e fine.");
+            mostraMessaggio("Compila le date di inizio e fine.");
             return;
         }
         if (new Date(a) < new Date(da)) {
-            alert("La data fine non può essere precedente alla data inizio.");
+            mostraMessaggio("La data fine non può essere precedente alla data inizio.");
             return;
         }
 
@@ -849,7 +1042,7 @@
         render();
 
         document.getElementById('inputFerieNote').value = '';
-        alert("Ferie / permesso registrati con successo!");
+        mostraMessaggio("Ferie / permesso registrati con successo!");
     }
 
     function aggiungiMalattiaO104() {
@@ -859,11 +1052,11 @@
         const note = document.getElementById('inputMal104Note').value;
 
         if (!da || !a) {
-            alert("Compila le date di inizio e fine.");
+            mostraMessaggio("Compila le date di inizio e fine.");
             return;
         }
         if (new Date(a) < new Date(da)) {
-            alert("La data fine non può essere precedente alla data inizio.");
+            mostraMessaggio("La data fine non può essere precedente alla data inizio.");
             return;
         }
 
@@ -878,7 +1071,7 @@
         render();
 
         document.getElementById('inputMal104Note').value = '';
-        alert("Malattia o Legge 104 registrata con successo!");
+        mostraMessaggio("Malattia o Legge 104 registrata con successo!");
     }
 
     function aggiungiTicketSpeso() {
@@ -888,7 +1081,7 @@
         const note = document.getElementById('inputTicketNote').value;
 
         if (!dataEsatta || !meseRif) {
-            alert("Inserisci la data esatta e seleziona il mese di riferimento.");
+            mostraMessaggio("Inserisci la data esatta e seleziona il mese di riferimento.");
             return;
         }
 
@@ -899,7 +1092,7 @@
 
         document.getElementById('inputTicketNote').value = '';
         document.getElementById('inputTicketQuantita').value = '1';
-        alert("Ticket speso registrato con successo!");
+        mostraMessaggio("Ticket speso registrato con successo!");
     }
 
     function riconcolaTutto() {
@@ -1122,19 +1315,19 @@
 
         salvaTuttiDati();
         render();
-        alert("Modifiche mensili salvate e prospetto ricalcolato!");
+        mostraMessaggio("Modifiche mensili salvate e prospetto ricalcolato!");
     }
 
     function eliminaMese(index) {
-        if (confirm("Vuoi rimuovere questo mese dal prospetto?")) {
+        mostraConferma("Vuoi rimuovere questo mese dal prospetto?", () => {
             dati.splice(index, 1);
             salvaTuttiDati();
             render();
-        }
+        });
     }
 
     function eliminaItemLog(tipo, index) {
-        if (confirm("Vuoi davvero eliminare questo record?")) {
+        mostraConferma("Vuoi davvero eliminare questo record?", () => {
             if (tipo === 'ferie') ferieLog.splice(index, 1);
             else if (tipo === 'mal104') mal104Log.splice(index, 1);
             else if (tipo === 'ticket') ticketLog.splice(index, 1);
@@ -1142,7 +1335,7 @@
             riconcolaTutto();
             salvaTuttiDati();
             render();
-        }
+        });
     }
 
     function apriModalEdit(tipo, index) {
@@ -1239,7 +1432,7 @@
             const note = document.getElementById('editFerieNote').value;
 
             if (!da || !a || new Date(a) < new Date(da)) {
-                alert("Date non valide.");
+                mostraMessaggio("Date non valide.");
                 return;
             }
 
@@ -1252,7 +1445,7 @@
             const note = document.getElementById('editMalNote').value;
 
             if (!da || !a || new Date(a) < new Date(da)) {
-                alert("Date non valide.");
+                mostraMessaggio("Date non valide.");
                 return;
             }
 
@@ -1266,7 +1459,7 @@
             const note = document.getElementById('editTicketNote').value;
 
             if (!dataEsatta) {
-                alert("Data obbligatoria.");
+                mostraMessaggio("Data obbligatoria.");
                 return;
             }
 
@@ -1279,10 +1472,11 @@
         salvaTuttiDati();
         render();
         chiudiModal();
-        alert("Modifiche salvate con successo!");
+        mostraMessaggio("Modifiche salvate con successo!");
     }
 
     window.onload = function() {
+        setupPWA();
         caricaDatiIniziali();
         sincronizzaAccreditiMensiliAutomatici();
         impostaDataOggiInput();
